@@ -25,21 +25,43 @@ static const char *TAG = "get_started";
 int blink_gpio = 21;
 
 long int last_warning_message = 0;
+bool is_blinking = false;
 
 static void blink_task(void *arg) {
+    mdf_err_t ret = MDF_OK;
+    char *data = MDF_MALLOC(MWIFI_PAYLOAD_LEN);
+    size_t size = MWIFI_PAYLOAD_LEN;
+    uint8_t src_addr[MWIFI_ADDR_LEN] = {0x0};
+    mwifi_data_type_t data_type = {0};
+
     for (;;) {
         struct timeval currentTime;
         gettimeofday(&currentTime, NULL);
 
         if (last_warning_message > 0 && last_warning_message + 3 > currentTime.tv_sec) {
             /* Blink on (output high) */
-            printf("Turning on the LED\n");
             gpio_set_level(blink_gpio, 1);
             vTaskDelay(20 / portTICK_PERIOD_MS);
             /* Blink off (output low) */
-            printf("Turning off the LED\n");
             gpio_set_level(blink_gpio, 0);
             vTaskDelay(100 / portTICK_PERIOD_MS);
+            is_blinking = true;
+        } else {
+            if (is_blinking) {
+                is_blinking = false;
+
+                uint8_t sta_mac2[MWIFI_ADDR_LEN] = {0};
+                esp_wifi_get_mac(ESP_IF_WIFI_STA, sta_mac2);
+                printf("Ended: %02X:%02X:%02X:%02X:%02X:%02X\n", sta_mac2[0], sta_mac2[1], sta_mac2[2], sta_mac2[3], sta_mac2[4], sta_mac2[5]);
+
+                wifi_sta_list_t wifi_sta_list = {0x0};
+                esp_wifi_ap_get_sta_list(&wifi_sta_list);
+                for (int i = 0; i < wifi_sta_list.num; i++) {
+                    wifi_sta_info_t d = wifi_sta_list.sta[i];
+                    printf("Ended: %02X:%02X:%02X:%02X:%02X:%02X\n", d.mac[0], d.mac[1], d.mac[2], d.mac[3], d.mac[4], d.mac[5]);
+                    ret = mwifi_root_write(wifi_sta_list.sta[i].mac, 1, &data_type, data, size, true);
+                }
+            }
         }
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
@@ -90,6 +112,9 @@ static void root_task(void *arg) {
         esp_wifi_vnd_mesh_get(&mesh_assoc);
         esp_mesh_get_parent_bssid(&parent_bssid);
 
+//        printf("Finished: %")
+
+
 //        MDF_LOGI("System information, channel: %d, layer: %d, self mac: "
 //        MACSTR
 //        ", parent bssid: "
@@ -98,12 +123,23 @@ static void root_task(void *arg) {
 //                esp_mesh_get_layer(), MAC2STR(sta_mac), MAC2STR(parent_bssid.addr),
 //                mesh_assoc.rssi, esp_mesh_get_total_node_num(), esp_get_free_heap_size());
 
+        wifi_sta_info_t d = wifi_sta_list.sta[i];
         ret = mwifi_root_write(src_addr, 1, &data_type, data, size, true);
 //        ret = mwifi_root_write(&wifi_sta_list.sta[i], wifi_sta_list.num, &data_type, data, size, true);
+
+
+
+
+        uint8_t sta_mac2[MWIFI_ADDR_LEN] = {0};
+        esp_wifi_get_mac(ESP_IF_WIFI_STA, sta_mac2);
+        printf("Started: %02X:%02X:%02X:%02X:%02X:%02X\n", sta_mac2[0], sta_mac2[1], sta_mac2[2], sta_mac2[3], sta_mac2[4], sta_mac2[5]);
+
         for (int i = 0; i < wifi_sta_list.num; i++) {
             MDF_LOGI("Root send to other addr: "
             MACSTR
             ", size: %d, data: %s", MAC2STR(wifi_sta_list.sta[i].mac), size, data);
+            wifi_sta_info_t d = wifi_sta_list.sta[i];
+            printf("Started: %02X:%02X:%02X:%02X:%02X:%02X\n", d.mac[0], d.mac[1], d.mac[2], d.mac[3], d.mac[4], d.mac[5]);
             ret = mwifi_root_write(wifi_sta_list.sta[i].mac, 1, &data_type, data, size, true);
         }
 
@@ -223,9 +259,16 @@ static void print_system_info_timercb(void *timer) {
             esp_mesh_get_layer(), MAC2STR(sta_mac), MAC2STR(parent_bssid.addr),
             mesh_assoc.rssi, esp_mesh_get_total_node_num(), esp_get_free_heap_size());
 
+    uint8_t sta_mac2[MWIFI_ADDR_LEN] = {0};
+    esp_wifi_get_mac(ESP_IF_WIFI_STA, sta_mac2);
+    printf("Alive: %02X:%02X:%02X:%02X:%02X:%02X\n", sta_mac2[0], sta_mac2[1], sta_mac2[2], sta_mac2[3], sta_mac2[4], sta_mac2[5]);
+
     for (int i = 0; i < wifi_sta_list.num; i++) {
         MDF_LOGI("Child mac: "
         MACSTR, MAC2STR(wifi_sta_list.sta[i].mac));
+
+        wifi_sta_info_t d = wifi_sta_list.sta[i];
+        printf("Alive: %02X:%02X:%02X:%02X:%02X:%02X\n", d.mac[0], d.mac[1], d.mac[2], d.mac[3], d.mac[4], d.mac[5]);
     }
 
 #ifdef MEMORY_DEBUG
@@ -299,8 +342,8 @@ void app_main() {
             .mesh_id   = CONFIG_MESH_ID,
             .mesh_type = CONFIG_DEVICE_TYPE,
     };
-//    config.mesh_type = MESH_ROOT;
-    config.mesh_type = MESH_NODE;
+    config.mesh_type = MESH_ROOT;
+//    config.mesh_type = MESH_NODE;
 
     blink_gpio = config.mesh_type == MESH_ROOT ? 21 : 2;
 
