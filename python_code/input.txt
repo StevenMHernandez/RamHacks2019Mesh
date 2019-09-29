@@ -1,0 +1,50 @@
+Turning off the LED
+Turning on the LED
+Turning off the LED
+Turning on the LED
+Turning off the LED
+I (11414) [get_started, 224]: System information, channel: 13, layer: 1, self mac: b4:e6:2d:ee:83:55, parent bssid: 00:00:00:00:00:00, parent rssi: -120, node num: 3, free heap: 165964
+I (11421) [get_started, 228]: Child mac: 3c:71:bf:6d:2a:78
+I (11427) [get_started, 228]: Child mac: a4:cf:12:0a:6b:f8
+I (21414) [get_started, 224]: System information, channel: 13, layer: 1, self mac: b4:e6:2d:ee:83:55, parent bssid: 00:00:00:00:00:00, parent rssi: -120, node num: 3, free heap: 165964
+I (21421) [get_started, 228]: Child mac: 3c:71:bf:6d:2a:78
+I (21427) [get_started, 228]: Child mac: a4:cf:12:0a:6b:f8
+I (31414) [get_started, 224]: System information, channel: 13, layer: 1, self mac: b4:e6:2d:ee:83:55, parent bssid: 00:00:00:00:00:00, parent rssi: -120, node num: 3, free heap: 165964
+I (31421) [get_started, 228]: Child mac: 3c:71:bf:6d:2a:78
+I (31427) [get_started, 228]: Child mac: a4:cf:12:0a:6b:f8
+I (41414) [get_started, 224]: System information, channel: 13, layer: 1, self mac: b4:e6:2d:ee:83:55, parent bssid: 00:00:00:00:00:00, parent rssi: -120, node num: 3, free heap: 165964
+I (41421) [get_started, 228]: Child mac: 3c:71:bf:6d:2a:78
+I (41427) [get_started, 228]: Child mac: a4:cf:12:0a:6b:f8
+I (51414) [get_started, 224]: System information, channel: 13, layer: 1, self mac: b4:e6:2d:ee:83:55, parent bssid: 00:00:00:00:00:00, parent rssi: -120, node num: 3, free heap: 165964
+I (51421) [get_started, 228]: Child mac: 3c:71:bf:6d:2a:78
+I (51427) [get_started, 228]: Child mac: a4:cf:12:0a:6b:f8
+I (61414) [get_started, 224]: System information, channel: 13, layer: 1, self mac: b4:e6:2d:ee:83:55, parent bssid: 00:00:00:00:00:00, parent rssi: -120, node num: 3, free heap: 165964
+I (61421) [get_started, 228]: Child mac: 3c:71:bf:6d:2a:78
+I (61427) [get_started, 228]: Child mac: a4:cf:12:0a:6b:f8
+I (71414) [get_started, 224]: System information, channel: 13, layer: 1, self mac: b4:e6:2d:ee:83:55, parent bssid: 00:00:00:00:00:00, parent rssi: -120, node num: 3, free heap: 165964
+I (71421) [get_started, 228]: Child mac: 3c:71:bf:6d:2a:78
+I (71427) [get_started, 228]: Child mac: a4:cf:12:0a:6b:f8
+I (81414) [get_started, 224]: System information, channel: 13, layer: 1, self mac: b4:e6:2d:ee:83:55, parent bssid: 00:00:00:00:00:00, parent rssi: -120, node num: 3, free heap: 165964
+I (81421) [get_started, 228]: Child mac: 3c:71:bf:6d:2a:78
+I (81427) [get_started, 228]: Child mac: a4:cf:12:0a:6b:f8
+I (91414) [get_started, 224]: System information, channel: 13, layer: 1, se
+new messages
+I (101485) mesh: [scan]new scanning time:1500ms
+W (101485) wifi: [beacon]new interval:1000ms
+I (111414) [get_started, 224]: System information, channel: 13, layer: 1, self mac: b4:e6:2d:ee:83:55, parent bssid: 00:00:00:00:00:00, parent rssi: -120, node num: 3, free heap: 165964
+I (111421) [get_started, 228]: Child mac: 3c:71:bf:6d:2a:78
+I (111427) [get_started, 228]: Child mac: a4:cf:12:0a:6b:f8
+I (121414) [get_started, 224]: System information, channel: 13, layer: 1, self mac: b4:e6:2d:ee:83:55, parent bssid: 00:00:00:00:00:00, parent rssi: -120, node num: 3, free heap: 165964
+I (121421) [get_started, 228]: Child mac: 3c:71:bf:6d:2a:78
+I (121427) [get_started, 228]: Child mac: a4:cf:12:0a:6b:f8
+I (126408) [get_started, 71]: Root receive, addr: 3c:71:bf:6d:2a:78, size: 7, data: (3) !!!
+I (126414) [get_started, 119]: Root send, addr: 3c:71:bf:6d:2a:78, size: 7, data: (3) !!!
+Turning on the LED
+Turning off the LED
+Turning on the LED
+Turning off the LED
+Turning on the LED
+Turning off the LED
+Turning on the LED
+Turning off the LED
+Turning on the LED
