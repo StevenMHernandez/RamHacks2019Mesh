@@ -20,8 +20,30 @@
 // #define MEMORY_DEBUG
 
 static const char *TAG = "get_started";
-#define BLINK_GPIO 21
 #define BUTTON_GPIO 12
+
+int blink_gpio = 21;
+
+long int last_warning_message = 0;
+
+static void blink_task(void *arg) {
+    for (;;) {
+        struct timeval currentTime;
+        gettimeofday(&currentTime, NULL);
+
+        if (last_warning_message > 0 && last_warning_message + 3 > currentTime.tv_sec) {
+            /* Blink on (output high) */
+            printf("Turning on the LED\n");
+            gpio_set_level(blink_gpio, 1);
+            vTaskDelay(20 / portTICK_PERIOD_MS);
+            /* Blink off (output low) */
+            printf("Turning off the LED\n");
+            gpio_set_level(blink_gpio, 0);
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
+}
 
 static void root_task(void *arg) {
     mdf_err_t ret = MDF_OK;
@@ -38,6 +60,8 @@ static void root_task(void *arg) {
             continue;
         }
 
+        size = sprintf(data, "(%d) Hello node!", i);
+
         size = MWIFI_PAYLOAD_LEN;
         memset(data, 0, MWIFI_PAYLOAD_LEN);
         ret = mwifi_root_read(src_addr, &data_type, data, &size, portMAX_DELAY);
@@ -46,8 +70,49 @@ static void root_task(void *arg) {
         MACSTR
         ", size: %d, data: %s", MAC2STR(src_addr), size, data);
 
-        size = sprintf(data, "(%d) Hello node!", i);
+        struct timeval currentTime;
+        gettimeofday(&currentTime, NULL);
+        last_warning_message = currentTime.tv_sec;
+
+
+
+
+        uint8_t primary = 0;
+        wifi_second_chan_t second = 0;
+        mesh_addr_t parent_bssid = {0};
+        uint8_t sta_mac[MWIFI_ADDR_LEN] = {0};
+        mesh_assoc_t mesh_assoc = {0x0};
+        wifi_sta_list_t wifi_sta_list = {0x0};
+
+        esp_wifi_get_mac(ESP_IF_WIFI_STA, sta_mac);
+        esp_wifi_ap_get_sta_list(&wifi_sta_list);
+        esp_wifi_get_channel(&primary, &second);
+        esp_wifi_vnd_mesh_get(&mesh_assoc);
+        esp_mesh_get_parent_bssid(&parent_bssid);
+
+//        MDF_LOGI("System information, channel: %d, layer: %d, self mac: "
+//        MACSTR
+//        ", parent bssid: "
+//        MACSTR
+//        ", parent rssi: %d, node num: %d, free heap: %u", primary,
+//                esp_mesh_get_layer(), MAC2STR(sta_mac), MAC2STR(parent_bssid.addr),
+//                mesh_assoc.rssi, esp_mesh_get_total_node_num(), esp_get_free_heap_size());
+
         ret = mwifi_root_write(src_addr, 1, &data_type, data, size, true);
+//        ret = mwifi_root_write(&wifi_sta_list.sta[i], wifi_sta_list.num, &data_type, data, size, true);
+        for (int i = 0; i < wifi_sta_list.num; i++) {
+            MDF_LOGI("Root send to other addr: "
+            MACSTR
+            ", size: %d, data: %s", MAC2STR(wifi_sta_list.sta[i].mac), size, data);
+            ret = mwifi_root_write(wifi_sta_list.sta[i].mac, 1, &data_type, data, size, true);
+        }
+
+
+
+
+
+
+
         MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_root_recv, ret: %x", ret);
         MDF_LOGI("Root send, addr: "
         MACSTR
@@ -82,6 +147,12 @@ static void node_read_task(void *arg) {
         MDF_LOGI("Node receive, addr: "
         MACSTR
         ", size: %d, data: %s", MAC2STR(src_addr), size, data);
+
+
+
+        struct timeval currentTime;
+        gettimeofday(&currentTime, NULL);
+        last_warning_message = currentTime.tv_sec;
     }
 
     MDF_LOGW("Note read task is exit");
@@ -110,8 +181,8 @@ void node_write_task(void *arg) {
         if (last_button_value != gpio_get_level(BUTTON_GPIO)) {
             last_button_value = gpio_get_level(BUTTON_GPIO);
             if (!gpio_get_level(BUTTON_GPIO)) {
-                printf("sending something!\n");
-                size = sprintf(data, "(%d) Hello root!", count++);
+                printf("Button pressed. Sending warning signal!\n");
+                size = sprintf(data, "(%d) !!!", count++);
                 ret = mwifi_write(NULL, &data_type, data, size, true);
                 MDF_ERROR_CONTINUE(ret != MDF_OK, "mwifi_write, ret: %x", ret);
             }
@@ -231,6 +302,8 @@ void app_main() {
 //    config.mesh_type = MESH_ROOT;
     config.mesh_type = MESH_NODE;
 
+    blink_gpio = config.mesh_type == MESH_ROOT ? 21 : 2;
+
     /**
      * @brief Set the log level for serial port printing.
      */
@@ -259,15 +332,17 @@ void app_main() {
 
     xTaskCreate(node_read_task, "node_read_task", 4 * 1024,
                 NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
+    xTaskCreate(blink_task, "blink_task", 4 * 1024,
+                NULL, CONFIG_MDF_TASK_DEFAULT_PRIOTY, NULL);
 
     TimerHandle_t timer = xTimerCreate("print_system_info", 10000 / portTICK_RATE_MS,
                                        true, NULL, print_system_info_timercb);
     xTimerStart(timer, 0);
 
 
-    gpio_pad_select_gpio(BLINK_GPIO);
+    gpio_pad_select_gpio(blink_gpio);
     /* Set the GPIO as a push/pull output */
-    gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
+    gpio_set_direction(blink_gpio, GPIO_MODE_OUTPUT);
     gpio_set_direction(BUTTON_GPIO, GPIO_MODE_INPUT);
     gpio_set_pull_mode(BUTTON_GPIO, GPIO_PULLUP_ONLY);
 
