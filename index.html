@@ -21,6 +21,9 @@
 
     <div id="app" class="container">
       <div class="row">
+        <img src="./ship.png" style="width:100%">
+      </div>
+      <div class="row">
         <div class="col-sm-4" v-for="(zone, index) in zones">
           <div class="panel" v-bind:class="zoneStatus(zone)">
             <div class="panel-heading">
@@ -76,7 +79,7 @@
               sum += user.status;
             }
 
-            var percent = sum / zone.users.length;
+            var percent = sum / (zone.users.length * 2);
 
             if (percent <= 0.5) {
               return {'panel-danger': true};
