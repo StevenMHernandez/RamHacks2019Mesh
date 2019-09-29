@@ -1,0 +1,130 @@
+<html>
+  <head>
+    <title>Ship Safety</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <style>
+      .panel-body {
+        height: 206px;
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="jumbotron text-center">
+      <h1>Ship Safety</h1>
+      <p>Central personnel monitoring dashboard</p>
+    </div>
+
+    <div id="app" class="container">
+      <div class="row">
+        <div class="col-sm-4" v-for="(zone, index) in zones">
+          <div class="panel" v-bind:class="zoneStatus(zone)">
+            <div class="panel-heading">
+              <h3>Zone {{ index + 1 }}</h3>
+              <h4>Location: {{ zone.location }}</h4>
+            </div>
+            <div class="panel-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th class="text-center">Name</th>
+                    <th class="text-center">Email</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="user in zone.users">
+                    <td v-bind:class="userStatus(user)" align="center">{{ user.name }}</td>
+                    <td v-bind:class="userStatus(user)" align="center">{{ user.email }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
+
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/7.0.0/firebase-app.js"></script>
+
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/7.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.0.0/firebase-database.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+    <script>
+      var data = {
+        isDanger: true,
+        zones:[]
+      }
+
+      var vm = new Vue({
+        el: '#app',
+        data: data,
+        methods: {
+          zoneStatus: function (zone) {
+            var sum = 0.0;
+
+            for (user of zone.users) {
+              sum += user.status;
+            }
+
+            var percent = sum / zone.users.length;
+
+            if (percent <= 0.5) {
+              return {'panel-danger': true};
+            } else if (percent <= 0.75) {
+              return {'panel-warning': true};
+            } else {
+              return {'panel-success': true};
+            }
+          },
+          userStatus: function (user) {
+            if (user.status == 2) {
+              return {'bg-normal': true};
+            } else if (user.status == 1) {
+              return {'bg-warning': true};
+            } else {
+              return {'bg-danger': true};
+            }
+          }
+        }
+      })
+
+      // Your web app's Firebase configuration
+      var firebaseConfig = {
+        apiKey: "AIzaSyAtNOVbIZbWNCfKZsFAvAO7d_21XZjo5x8",
+        authDomain: "ramhacks2019.firebaseapp.com",
+        databaseURL: "https://ramhacks2019.firebaseio.com",
+        projectId: "ramhacks2019",
+        storageBucket: "ramhacks2019.appspot.com",
+        messagingSenderId: "841233880699",
+        appId: "1:841233880699:web:a575382a7cb917cd50b4de",
+        measurementId: "G-K0CMXQ12T1"
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+
+      // Initialize Database
+      var db = firebase.database();
+
+      var update = db.ref('zones/')//.once('value');
+      update.on('value', function(snapshot) {
+        vm.zones = snapshot.val().filter(zone => zone != null) || [];
+        for (zone of vm.zones) {
+          zone.users = zone.users.filter(user => user != null);
+        }
+        // console.log(vm.zones);
+      });
+
+    </script>
+  </body>
+</html>
